@@ -21,7 +21,7 @@ X_test_scaled = scaler.transform(X_test)
 
 # Instantiate your MLPClassifier
 # mlp = MLPClassifier(neurons_size=[X_train.shape[1], 30, 10])  # Input layer size is the number of features, output layer size is the number of classes (10 digits)
-mlp = MLPClassifier([8*8, 20, 10])
-mlp.train(zip(X_train, y_train), 2, test_data=zip(X_test, y_test))
+mlp = MLPClassifier([8*8, 40, 10])
+mlp.train([X_train, y_train], 10000, learning_rate=0.01, test_data=[X_test, y_test])
 # Train the classifier
 # mlp.train(training_data=list(zip(X_train_scaled, y_train)), epochs=100, learning_rate=0.1, stopping_threshold=1e-5, test_data=list(zip(X_test_scaled, y_test)))

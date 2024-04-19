@@ -31,7 +31,7 @@ class MLPClassifier:
             
             
             if test_data:
-                n_test = len(test_data)
+                n_test = len(test_data[0])
                 print("Epoch {0}: {1} / {2}".format(epoch, self.evaluate(test_data), n_test))
             else:
                 print("Epoch {0} complete".format(epoch))    
@@ -42,14 +42,15 @@ class MLPClassifier:
         gradient_w = [np.zeros(w.shape) for w in self.weights]
         # x - Input
         # y - Desired output
-        for x, y in training_data:
+
+        for x, y in zip(training_data[0], training_data[1]):
             delta_gradient_b, delta_gradient_w = self.backprop(x, y)
             gradient_b = [gb+dgb for gb, dgb in zip(gradient_b, delta_gradient_b)]
             gradient_w = [gw+dgw for gw, dgw in zip(gradient_w, delta_gradient_w)]
-            
-        self.weights = [w-(learning_rate/len(training_data))*gw
+        
+        self.weights = [w-(learning_rate/len(training_data[0]))*gw
                         for w, gw in zip(self.weights, gradient_w)]
-        self.biases = [b-(learning_rate/len(training_data))*nb
+        self.biases = [b-(learning_rate/len(training_data[0]))*nb
                     for b, nb in zip(self.biases, gradient_b)]
             
         
@@ -73,18 +74,18 @@ class MLPClassifier:
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * self.sigmoid_prime(zs[-1])
         gradient_b[-1] = delta
-        gradient_w[-1] = np.dot(delta, activations[-2].transpose())
+        gradient_w[-1] = np.dot(delta, activations[-1].transpose())
         for l in range(2, self.num_layers):
             z = zs[-l]
             sp = self.sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             gradient_b[-l] = delta
-            gradient_w[-l] = np.dot(delta, activations[-l-1].transpose())
+            gradient_w[-l] = np.dot(delta, activations[-l].transpose())
         return (gradient_b, gradient_w)
 
 
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedForward(x)), y) for (x, y) in test_data]
+        test_results = [(np.argmax(self.feedForward(x)), y) for (x, y) in zip(test_data[0], test_data[1])]
         return sum(int(x == y) for (x, y) in test_results)
         
     def cost_derivative(self, output_activations, y):
