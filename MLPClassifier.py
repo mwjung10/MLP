@@ -2,6 +2,8 @@ import numpy as np
 from sklearn import datasets
 import random
 from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_digits
+
 class MLPClassifier:
     def __init__(self, neurons_size):
         self.num_layers = len(neurons_size)
@@ -93,12 +95,17 @@ class MLPClassifier:
     
 
 if __name__ == "__main__":
-    pass
-    # dataset = datasets.load_digits(as_frame=False)
-    # X = dataset.data
-    # Y = dataset.target
-    # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-    
-    # mlp = MLPClassifier([8*8, 20, 10])
-    # # training_data, epochs = 1000, learning_rate = 0.0001, stopping_threshold = 1e-6, test_data = None
-    # mlp.train(zip(X_train, y_train), 2, test_data=zip(X_test, y_test))
+    # Load the digits dataset
+    digits = load_digits()
+
+    # Preprocess the data
+    X = digits.data
+    Y = digits.target
+
+    # Split the data into training and testing sets
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
+
+
+    # Instantiate your MLPClassifier
+    mlp = MLPClassifier([8*8, 40, 10])
+    mlp.train([X_train, Y_train], 10000, learning_rate=0.001, test_data=[X_test, Y_test])
