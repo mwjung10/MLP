@@ -160,9 +160,7 @@ class MLPClassifier:
         #return output_activations - y
 
 
-def softmax(x):
-    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))  # Subtracting max value for numerical stability
-    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+
 
 def predict(model, data):
     predictions = []
@@ -193,7 +191,7 @@ def example():
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 64, 32, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 10, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 300, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
 
     y_pred = predict(mlp, X_test)
 
@@ -209,7 +207,7 @@ def example():
     # Plot some predictions
     plt.figure(figsize=(10, 6))
     plt.plot(Y_test, label='Actual', color='blue')
-    plt.plot(y_pred, label='Predicted', color='red')
+    plt.plot(y_pred_labels, label='Predicted', color='red')
     plt.xlabel('Sample')
     plt.ylabel('Target')
     plt.title('Actual vs Predicted')
