@@ -168,8 +168,7 @@ def predict(model, data):
     predictions = []
     for sample in data:
         output = model.feedForward(sample, "SIGMOID")
-        prediction = softmax(output)
-        predictions.append(prediction)
+        predictions.append(output)
     return np.array(predictions)
 
 
