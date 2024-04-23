@@ -3,6 +3,7 @@ from sklearn import datasets
 import random
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
+from matplotlib import pyplot as plt
 
 
 class MLPClassifier:
@@ -80,6 +81,7 @@ class MLPClassifier:
     def GD(self, training_data, learning_rate, activation_function):
         gradient_b = [np.zeros(b.shape) for b in self.biases]
         gradient_w = [np.zeros(w.shape) for w in self.weights]
+        avg_gradient_mag = 0
         # x - Input
         # y - Desired output
 
@@ -90,6 +92,9 @@ class MLPClassifier:
             gradient_b = [gb + dgb for gb, dgb in zip(gradient_b, delta_gradient_b)]
             gradient_w = [gw + dgw for gw, dgw in zip(gradient_w, delta_gradient_w)]
 
+            avg_gradient_mag += np.sum(np.abs(delta_gradient_b[-1])) + np.sum(np.abs(delta_gradient_w[-1]))
+
+        print("Average gradient magnitude:", avg_gradient_mag)
         self.weights = [
             w - (learning_rate / len(training_data[0])) * gw
             for w, gw in zip(self.weights, gradient_w)
@@ -140,7 +145,7 @@ class MLPClassifier:
             delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
             gradient_b[-l] = delta
             gradient_w[-l] = [activations[-l - 1] * d for d in delta]
-            
+
         return (gradient_b, gradient_w)
 
     def evaluate(self, test_data, activation_function="SIGMOID"):
@@ -151,11 +156,31 @@ class MLPClassifier:
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
-        return (2 * (output_activations - y)) 
+        return (2 * (output_activations - y))
         #return output_activations - y
 
 
-if __name__ == "__main__":
+def softmax(x):
+    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))  # Subtracting max value for numerical stability
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+
+def predict(model, data):
+    predictions = []
+    for sample in data:
+        output = model.feedForward(sample, "SIGMOID")
+        prediction = softmax(output)
+        predictions.append(prediction)
+    return np.array(predictions)
+
+
+def normalize_data(X):
+    X_mean = np.mean(X)
+    X_std = np.std(X)
+    X_normalized = (X - X_mean) / X_std
+    return X_normalized, X_mean, X_std
+
+
+def example():
     # Load the digits dataset
     digits = load_digits()
 
@@ -167,6 +192,31 @@ if __name__ == "__main__":
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
 
     # Instantiate your MLPClassifier
-    mlp = MLPClassifier([8 * 8, 128, 10])
+    mlp = MLPClassifier([8 * 8, 64, 32, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 10000, learning_rate=0.03, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 10, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+
+    y_pred = predict(mlp, X_test)
+
+    # Calculate and print Mean Squared Error
+    # Convert predicted probabilities to class labels
+    y_pred_labels = np.argmax(y_pred, axis=1)
+
+    # Calculate and print Mean Squared Error
+    mse = np.mean((y_pred_labels - Y_test) ** 2)
+    print(f"Mean Squared Error: {mse}")
+
+
+    # Plot some predictions
+    plt.figure(figsize=(10, 6))
+    plt.plot(Y_test, label='Actual', color='blue')
+    plt.plot(y_pred, label='Predicted', color='red')
+    plt.xlabel('Sample')
+    plt.ylabel('Target')
+    plt.title('Actual vs Predicted')
+    plt.legend()
+    plt.show()
+
+
+if __name__ == "__main__":
+    example()
