@@ -169,4 +169,4 @@ if __name__ == "__main__":
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 128, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 10000, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 10000, learning_rate=0.03, test_data=test_data, activation_function="SIGMOID")
