@@ -170,13 +170,6 @@ def predict(model, data):
     return np.array(predictions)
 
 
-def normalize_data(X):
-    X_mean = np.mean(X)
-    X_std = np.std(X)
-    X_normalized = (X - X_mean) / X_std
-    return X_normalized, X_mean, X_std
-
-
 def example():
     # Load the digits dataset
     digits = load_digits()
@@ -191,7 +184,7 @@ def example():
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 64, 32, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 300, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 5, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
 
     y_pred = predict(mlp, X_test)
 
