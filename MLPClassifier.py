@@ -17,25 +17,37 @@ class MLPClassifier:
         print("abc")
 
     def sigmoid(self, x):
+        """
+        Returns sigmoid function value for given x
+        """
         return 1.0 / (1.0 + np.exp(-x))
 
     def sigmoid_prime(self, x):
+        """
+        Returns sigmoid prime function value for given x
+        """
         return self.sigmoid(x) * (1 - self.sigmoid(x))
 
     def relu(self, x):
+        """
+        Returns ReLU function value for given x
+        """
         return x * (x > 0)
 
     def relu_prime(self, x):
+        """
+        Returns ReLU function value for given x
+        """
         return 1.0 * (x > 0)
 
     def feedForward(self, input, activation_function):
         # Feeds forward array "input" of inputs to next layer unitl it reaches output layer
-        if activation_function.capitalize() == "SIGMOID":
+        if activation_function.upper() == "SIGMOID":
             for bias, weights in zip(self.biases, self.weights):
                 input = self.sigmoid(
                     np.dot(weights, input) + bias
                 )  # np.dot is the dot product of two arrays (matrices)
-        elif activation_function.capitalize() == "RELU":
+        elif activation_function.upper() == "RELU":
             for bias, weights in zip(self.biases, self.weights):
                 input = self.relu(np.dot(weights, input) + bias)
         else:
@@ -55,7 +67,6 @@ class MLPClassifier:
             if learning_rate <= stopping_threshold:
                 break
             self.GD(training_data, learning_rate, activation_function)
-
             if test_data:
                 n_test = len(test_data[0])
                 print(
@@ -65,10 +76,6 @@ class MLPClassifier:
                 )
             else:
                 print("Epoch {0} complete".format(epoch))
-
-    def ReLU(self, training_data, learning_rate):
-        gradient_b = [np.zeros(b.shape) for b in self.biases]
-        gradient_w = [np.zeros(w.shape) for w in self.weights]
 
     def GD(self, training_data, learning_rate, activation_function):
         gradient_b = [np.zeros(b.shape) for b in self.biases]
@@ -94,7 +101,7 @@ class MLPClassifier:
 
     def backprop(self, x, y, activation_function="SIGMOID"):
         """
-        Returns calculated gradients for weights and biases
+        Returns calculated delta for weights and biases
         """
         gradient_b = [np.zeros(b.shape) for b in self.biases]
         gradient_w = [np.zeros(w.shape) for w in self.weights]
@@ -122,45 +129,30 @@ class MLPClassifier:
         gradient_b[-1] = delta
         gradient_w[-1] = [activations[-2] * x for x in delta]
 
-        # for nth_gradient_w, delta_value in zip(range(len(delta)), delta):
-        #     nth_gradient_list = []
-        #     for neuron_activation in activations[-2]:
-        #         multiplied_value = delta_value * neuron_activation
-        #         nth_gradient_list.append(multiplied_value)
-        #     gradient_w[-1][nth_gradient_w] = (np.array(nth_gradient_list))
-
-        # gradient_w[-1] = np.dot(delta, activations[-2].transpose()) <= tak bylo
-        # [activation[-1]*d for d in delta] <- tak ma byc
         for l in range(2, self.num_layers):
             z = zs[-l]
 
             if activation_function == "SIGMOID":
                 sp = self.sigmoid_prime(z)
             elif activation_function == "RELU":
-                sp = self.relu_fun_prime(z)
+                sp = self.relu_prime(z)
 
             delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
             gradient_b[-l] = delta
             gradient_w[-l] = [activations[-l - 1] * d for d in delta]
+            
         return (gradient_b, gradient_w)
 
     def evaluate(self, test_data, activation_function="SIGMOID"):
-        if activation_function.capitalize() == "SIGMOID":
-            test_results = [
-                (np.argmax(self.feedForward(x, activation_function)), y)
-                for (x, y) in zip(test_data[0], test_data[1])
+        test_results = [
+            (np.argmax(self.feedForward(x, activation_function)), y)
+            for (x, y) in zip(test_data[0], test_data[1])
             ]
-        elif activation_function.capitalize() == "RELU":
-            test_results = [
-                (np.argmax(self.feedForward(x, activation_function)), y)
-                for (x, y) in zip(test_data[0], test_data[1])
-            ]
-        else:
-            raise "invalid activation function"
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
-        return output_activations - y
+        return (2 * (output_activations - y)) 
+        #return output_activations - y
 
 
 if __name__ == "__main__":
@@ -177,4 +169,4 @@ if __name__ == "__main__":
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 128, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 10000, learning_rate=0.015, test_data=test_data)
+    mlp.train([X_train, Y_train], 10000, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
