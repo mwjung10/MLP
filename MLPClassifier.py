@@ -19,14 +19,26 @@ class MLPClassifier:
     def sigmoid_prime(self, x):
         return self.sigmoid(x)*(1-self.sigmoid(x))
     
-    def feedForward(self, input):
-        # Feeds forward array "input" of inputs to next layer unitl it reaches output layer
-        for bias, weights in zip(self.biases, self.weights):
-            input = self.sigmoid(np.dot(weights, input) + bias)  # np.dot is the dot product of two arrays (matrices)
+    def relu_fun(self, x):
+        return np.max(0, x)
 
+    def relu_fun_prime(self, x):
+        np.zeros(x.shape)
+        
+        # return np.min(1, np.max(0,x))
+        pass
+
+    def feedForward(self, input, activation_function="SIGMOID"):
+        # Feeds forward array "input" of inputs to next layer unitl it reaches output layer
+        if activation_function.capitalize() == "SIGMOID":
+            for bias, weights in zip(self.biases, self.weights):
+                input = self.sigmoid(np.dot(weights, input) + bias)  # np.dot is the dot product of two arrays (matrices)
+        elif activation_function.capitalize() == "RELU":
+            for bias, weights in zip(self.biases, self.weights):
+                input = self.relu_fun(np.dot(weights, input) + bias)
         return input
 
-    def train(self, training_data, epochs = 1000, learning_rate = 0.0001, stopping_threshold = 1e-6, test_data = None):
+    def train(self, training_data, epochs = 1000, learning_rate = 0.0001, stopping_threshold = 1e-6, test_data = None, activation_function=):
         for epoch in range(epochs):
             if learning_rate <= stopping_threshold:
                 break
@@ -39,7 +51,10 @@ class MLPClassifier:
             else:
                 print("Epoch {0} complete".format(epoch))    
     
-    
+    def ReLU(self, training_data, learning_rate):
+        gradient_b = [np.zeros(b.shape) for b in self.biases]
+        gradient_w = [np.zeros(w.shape) for w in self.weights]
+
     def GD(self, training_data, learning_rate):
         gradient_b = [np.zeros(b.shape) for b in self.biases]
         gradient_w = [np.zeros(w.shape) for w in self.weights]
@@ -78,23 +93,24 @@ class MLPClassifier:
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * self.sigmoid_prime(zs[-1])
         gradient_b[-1] = delta
+        gradient_w[-1] = [activations[-2]*x for x in delta]
         
-        for nth_gradient_w, delta_value in zip(range(len(delta)), delta):
-            nth_gradient_list = []
-            for neuron_activation in activations[-2]:
-                multiplied_value = delta_value * neuron_activation
-                nth_gradient_list.append(multiplied_value)
-            gradient_w[-1][nth_gradient_w] = (np.array(nth_gradient_list))
-                
-                
-        
-        # gradient_w[-1] = np.dot(delta, activations[-2].transpose())
+        # for nth_gradient_w, delta_value in zip(range(len(delta)), delta):
+        #     nth_gradient_list = []
+        #     for neuron_activation in activations[-2]:
+        #         multiplied_value = delta_value * neuron_activation
+        #         nth_gradient_list.append(multiplied_value)
+        #     gradient_w[-1][nth_gradient_w] = (np.array(nth_gradient_list))        
+
+        # gradient_w[-1] = np.dot(delta, activations[-2].transpose()) <= tak bylo
+        #[activation[-1]*d for d in delta] <- tak ma byc
         for l in range(2, self.num_layers):
             z = zs[-l]
             sp = self.sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             gradient_b[-l] = delta
-            gradient_w[-l] = np.dot(delta, activations[-l].transpose())
+            gradient_w[-l] = [activations[-l-1]*d for d in delta]
+            # gradient_w[-l] = np.dot(delta, activations[-l-1].transpose())
         return (gradient_b, gradient_w)
 
 
@@ -121,4 +137,4 @@ if __name__ == "__main__":
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8*8, 128, 10])
     test_data=[X_test, Y_test]
-    mlp.train([X_train, Y_train], 10000, learning_rate=0.0005, test_data=test_data)
+    mlp.train([X_train, Y_train], 10000, learning_rate=0.015, test_data=test_data)
