@@ -12,6 +12,7 @@ class MLPClassifier:
         self.weights = [np.random.randn(y, x) for x,y in zip(neurons_size[:-1], neurons_size[1:])]
         print([b.shape for b in self.biases])
         print("abc")
+        
     def sigmoid(self, x):
         return 1./(1.+np.exp(-x))
     
@@ -73,10 +74,21 @@ class MLPClassifier:
             activation = self.sigmoid(z)
             activations.append(activation)
 
+        # activations.pop(0)
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * self.sigmoid_prime(zs[-1])
         gradient_b[-1] = delta
-        gradient_w[-1] = np.dot(delta, activations[-1].transpose())
+        
+        for nth_gradient_w, delta_value in zip(range(len(delta)), delta):
+            nth_gradient_list = []
+            for neuron_activation in activations[-2]:
+                multiplied_value = delta_value * neuron_activation
+                nth_gradient_list.append(multiplied_value)
+            gradient_w[-1][nth_gradient_w] = (np.array(nth_gradient_list))
+                
+                
+        
+        # gradient_w[-1] = np.dot(delta, activations[-2].transpose())
         for l in range(2, self.num_layers):
             z = zs[-l]
             sp = self.sigmoid_prime(z)
@@ -107,5 +119,6 @@ if __name__ == "__main__":
 
 
     # Instantiate your MLPClassifier
-    mlp = MLPClassifier([8*8, 40, 10])
-    mlp.train([X_train, Y_train], 10000, learning_rate=0.001, test_data=[X_test, Y_test])
+    mlp = MLPClassifier([8*8, 128, 10])
+    test_data=[X_test, Y_test]
+    mlp.train([X_train, Y_train], 10000, learning_rate=0.0005, test_data=test_data)
