@@ -6,7 +6,7 @@ from sklearn.datasets import load_digits
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
-
+from sklearn import preprocessing
 
 class MLPClassifier:
     def __init__(self, neurons_size):
@@ -24,6 +24,8 @@ class MLPClassifier:
         Returns sigmoid function value for given x
         """
         return 1.0 / (1.0 + np.exp(-x))
+
+
 
     def sigmoid_prime(self, x):
         """
@@ -222,7 +224,7 @@ def example():
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 64, 32, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 5, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 100, learning_rate=0.1, test_data=test_data, activation_function="SIGMOID")
 
     y_pred = predict(mlp, X_test)
 
@@ -246,5 +248,6 @@ def example():
     print(f"Mean Squared Error: {mse}")
 
 
+
 if __name__ == "__main__":
-    regression_example()
+    example_with_hot_encoding()
