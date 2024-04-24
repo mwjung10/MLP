@@ -174,31 +174,37 @@ def predict(model, data):
 
 def regression_example():
     # Generate some data
-    X = np.random.rand(100, 1)
-    Y = 5 * X + 3 + np.random.randn(100, 1)
+    L_BOUND = -5
+    U_BOUND = 5
+    SAMPLE_SIZE = 200
 
-    # Split the data into training and testing sets
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
+    p = [3, 9]
+    def q(x):
+        return np.sin(x * np.sqrt(p[0] + 1)) + np.cos(x * np.sqrt(p[1] + 1))
+
+    train = np.linspace(L_BOUND, U_BOUND, SAMPLE_SIZE)
+    good = q(train)
 
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([1, 64, 32, 1])
-    test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 1000, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+    test_data = [train.reshape(-1, 1), good.reshape(-1, 1)]
+    mlp.train([train.reshape(-1, 1), good.reshape(-1, 1)], 10, learning_rate=0.1, test_data=test_data)
 
-    y_pred = predict(mlp, X_test)
+    y_pred = predict(mlp, train.reshape(-1, 1))
 
-    # Calculate and print Mean Squared Error
-    mse = np.mean((y_pred - Y_test) ** 2)
-    print(f"Mean Squared Error: {mse}")
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.spines['left'].set_position('center')
+    ax.spines['bottom'].set_position('zero')
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
 
-    # Plot some predictions
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X_test, Y_test, label='Actual', color='blue')
-    plt.scatter(X_test, y_pred, label='Predicted', color='red')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Actual vs Predicted')
+    plt.plot(train, good, 'r', label='train')
+    plt.plot(train, y_pred, 'b', label='test')
     plt.legend()
+    plt.savefig('plot.png')
     plt.show()
 
 
@@ -241,4 +247,4 @@ def example():
 
 
 if __name__ == "__main__":
-    example()
+    regression_example()
