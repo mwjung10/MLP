@@ -25,8 +25,6 @@ class MLPClassifier:
         """
         return 1.0 / (1.0 + np.exp(-x))
 
-
-
     def sigmoid_prime(self, x):
         """
         Returns sigmoid prime function value for given x
@@ -48,10 +46,11 @@ class MLPClassifier:
     def feedForward(self, input, activation_function):
         # Feeds forward array "input" of inputs to next layer unitl it reaches output layer
         if activation_function.upper() == "SIGMOID":
-            for bias, weights in zip(self.biases, self.weights):
+            for bias, weights in zip(self.biases[:-1], self.weights[:-1]):
                 input = self.sigmoid(
                     np.dot(weights, input) + bias
                 )  # np.dot is the dot product of two arrays (matrices)
+                input = self.softmax(np.dot(self.weights[-1], input) + self.biases[-1])
         elif activation_function.upper() == "RELU":
             for bias, weights in zip(self.biases, self.weights):
                 input = self.relu(np.dot(weights, input) + bias)
@@ -98,7 +97,7 @@ class MLPClassifier:
 
             avg_gradient_mag += np.sum(np.abs(delta_gradient_b[-1])) + np.sum(np.abs(delta_gradient_w[-1]))
 
-        print("Average gradient magnitude:", avg_gradient_mag)
+        # print("Average gradient magnitude:", avg_gradient_mag)
         self.weights = [
             w - (learning_rate / len(training_data[0])) * gw
             for w, gw in zip(self.weights, gradient_w)
@@ -151,20 +150,27 @@ class MLPClassifier:
             gradient_w[-l] = [activations[-l - 1] * d for d in delta]
 
         return (gradient_b, gradient_w)
-
+    
     def evaluate(self, test_data, activation_function="SIGMOID"):
-        test_results = [
-            (np.argmax(self.feedForward(x, activation_function)), y)
-            for (x, y) in zip(test_data[0], test_data[1])
-            ]
-        return sum(int(x == y) for (x, y) in test_results)
+        # test_results = [
+        #     (np.argmax(self.feedForward(x, activation_function)), y)
+        #     for (x, y) in zip(test_data[0], test_data[1])
+        #     ]
+        recevied_output = [self.feedForward(x, activation_function) for x in test_data[0]]
+        test_output = test_data[1]
+        sum = 0
+        for r_o, t_o in zip(recevied_output, test_output):
+            if np.argmax(r_o) == np.argmax(t_o):
+                sum += 1
+        
+        return sum
 
     def cost_derivative(self, output_activations, y):
-        return (2 * (output_activations - y))
-        #return output_activations - y
+        return output_activations - y
 
-
-
+    def softmax(self, x):
+        exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 def predict(model, data):
     predictions = []
@@ -217,14 +223,17 @@ def example():
     # Preprocess the data
     X = digits.data
     Y = digits.target
+    
+    X /= 16  # Normalize pixel values to range [0, 1]
+    Y_one_hot = np.eye(10)[Y]
 
     # Split the data into training and testing sets
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y_one_hot, test_size=0.5)
 
     # Instantiate your MLPClassifier
     mlp = MLPClassifier([8 * 8, 64, 32, 10])
     test_data = [X_test, Y_test]
-    mlp.train([X_train, Y_train], 100, learning_rate=0.1, test_data=test_data, activation_function="SIGMOID")
+    mlp.train([X_train, Y_train], 1000, learning_rate=0.1, test_data=test_data, activation_function="SIGMOID")
 
     y_pred = predict(mlp, X_test)
 
@@ -245,9 +254,25 @@ def example():
 
     # Calculate and print Mean Squared Error
     mse = np.mean((y_pred_labels - Y_test) ** 2)
-    print(f"Mean Squared Error: {mse}")
+    # print(f"Mean Squared Error: {mse}")
 
+def example_with_hot_encoding():
+    digits = load_digits()
 
+    # Preprocess the data
+    X = digits.data
+    Y = digits.target
+    
+    X /= 16  # Normalize pixel values to range [0, 1]
+    Y_one_hot = np.eye(10)[Y]
+
+    # Split the data into training and testing sets
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y_one_hot, test_size=0.5)
+
+    # Instantiate your MLPClassifier
+    mlp = MLPClassifier([8 * 8, 128, 10])
+    test_data = [X_test, Y_test]
+    mlp.train((X_train, Y_train), 1000, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
 
 if __name__ == "__main__":
     example_with_hot_encoding()
