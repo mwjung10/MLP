@@ -4,6 +4,8 @@ import random
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
 from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 
 class MLPClassifier:
@@ -170,6 +172,36 @@ def predict(model, data):
     return np.array(predictions)
 
 
+def regression_example():
+    # Generate some data
+    X = np.random.rand(100, 1)
+    Y = 5 * X + 3 + np.random.randn(100, 1)
+
+    # Split the data into training and testing sets
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
+
+    # Instantiate your MLPClassifier
+    mlp = MLPClassifier([1, 64, 32, 1])
+    test_data = [X_test, Y_test]
+    mlp.train([X_train, Y_train], 1000, learning_rate=0.01, test_data=test_data, activation_function="SIGMOID")
+
+    y_pred = predict(mlp, X_test)
+
+    # Calculate and print Mean Squared Error
+    mse = np.mean((y_pred - Y_test) ** 2)
+    print(f"Mean Squared Error: {mse}")
+
+    # Plot some predictions
+    plt.figure(figsize=(10, 6))
+    plt.scatter(X_test, Y_test, label='Actual', color='blue')
+    plt.scatter(X_test, y_pred, label='Predicted', color='red')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('Actual vs Predicted')
+    plt.legend()
+    plt.show()
+
+
 def example():
     # Load the digits dataset
     digits = load_digits()
@@ -192,20 +224,20 @@ def example():
     # Convert predicted probabilities to class labels
     y_pred_labels = np.argmax(y_pred, axis=1)
 
+
+    cm = confusion_matrix(Y_test, y_pred_labels)
+
+    # Plot confusion matrix
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title('Confusion Matrix')
+    plt.show()
+
     # Calculate and print Mean Squared Error
     mse = np.mean((y_pred_labels - Y_test) ** 2)
     print(f"Mean Squared Error: {mse}")
-
-
-    # Plot some predictions
-    plt.figure(figsize=(10, 6))
-    plt.plot(Y_test, label='Actual', color='blue')
-    plt.plot(y_pred_labels, label='Predicted', color='red')
-    plt.xlabel('Sample')
-    plt.ylabel('Target')
-    plt.title('Actual vs Predicted')
-    plt.legend()
-    plt.show()
 
 
 if __name__ == "__main__":
